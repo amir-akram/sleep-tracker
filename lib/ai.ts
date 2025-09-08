@@ -36,6 +36,13 @@ export interface AIInsight {
 }
 
 /**
+ * ---- Helper: Shuffle Insights ----
+ */
+function shuffle<T>(array: T[]): T[] {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+/**
  * ---- Local Rule-Based Fallback ----
  * ✅ Returns 3–4 blocks (warning/tip/success/info) when AI quota or API fails
  */
@@ -119,7 +126,8 @@ function localSleepInsights(records: SleepRecord[]): AIInsight[] {
     confidence: 0.7,
   });
 
-  return insights;
+  // ✅ Shuffle so results aren’t always the same order
+  return shuffle(insights);
 }
 
 /**
@@ -128,10 +136,8 @@ function localSleepInsights(records: SleepRecord[]): AIInsight[] {
 export async function generateSleepInsights(
   sleepRecords: SleepRecord[]
 ): Promise<AIInsight[]> {
-  // Use last 7 days only (saves tokens)
   const recent = sleepRecords.slice(-7);
 
-  // Compact representation instead of full JSON.stringify
   const compactData = recent
     .map(r => `${r.date}:${r.hours}h:${r.quality}`)
     .join(', ');
@@ -141,7 +147,7 @@ export async function generateSleepInsights(
     `Analyze the following sleep data (last 7 days) and provide 1–2 actionable insights. 
      Sleep Data: ${compactData}
      Focus on: consistency of hours, trends in quality, health/wellness suggestions, positive reinforcement.`,
-    recent // ✅ pass recent records for local fallback
+    recent
   );
 }
 
@@ -157,7 +163,6 @@ async function generateInsightsHelper(
     const user = await checkUser();
     if (!user) throw new Error('User not authenticated');
 
-    // ✅ Check quota
     const { allowed, fallback, reason } = await checkAndLogAIRequest();
     if (!allowed) {
       if (fallback && recentRecords) {
@@ -182,7 +187,7 @@ async function generateInsightsHelper(
     let completion;
     try {
       completion = await openai.chat.completions.create({
-        model: 'deepseek/deepseek-chat-v3-0324:free', // primary
+        model: 'deepseek/deepseek-chat-v3-0324:free',
         messages: [
           {
             role: 'system',
@@ -199,9 +204,8 @@ async function generateInsightsHelper(
     } catch (err: any) {
       if (err.status === 429) {
         console.warn('⚠️ Provider 429 error, retrying with backup model...');
-        // ---- Fallback to backup model ----
         completion = await openai.chat.completions.create({
-          model: 'gpt-4o-mini', // backup
+          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',
@@ -235,7 +239,17 @@ async function generateInsightsHelper(
         .replace(/\s*```$/, '');
     }
 
-    const insights = JSON.parse(cleanedResponse);
+    // ✅ Fix malformed JSON (remove trailing commas)
+    cleanedResponse = cleanedResponse.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+
+    let insights: RawInsight[];
+    try {
+      insights = JSON.parse(cleanedResponse);
+    } catch (parseErr) {
+      console.error('⚠️ JSON parse failed, using local fallback:', parseErr);
+      if (recentRecords) return localSleepInsights(recentRecords);
+      throw parseErr;
+    }
 
     return insights.map((insight: RawInsight, index: number) => ({
       id: `ai-${Date.now()}-${index}`,
@@ -247,12 +261,9 @@ async function generateInsightsHelper(
     }));
   } catch (error: any) {
     console.error('❌ Error generating AI insights:', error);
-
-    // ✅ Local fallback if records exist
     if (recentRecords) {
       return localSleepInsights(recentRecords);
     }
-
     return [
       {
         id: 'fallback-1',

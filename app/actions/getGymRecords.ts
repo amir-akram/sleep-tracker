@@ -1,33 +1,42 @@
+// app/actions/getGymRecords.ts
 'use server';
+
 import { db } from '@/lib/db';
 import { checkUser } from '@/lib/checkUser';
 
-interface GymRecord {
+export type GymRecordForUI = {
   id: string;
   userId: string;
   workoutType: string;
   weight: number;
-  date: Date;
-}
+  date: string; // ISO date (yyyy-mm-dd)
+  createdAt: string; // ISO datetime
+};
+
 
 async function getGymRecords(): Promise<{
-  records?: { date: string; weight: number; workoutType: string }[];
+  records?: GymRecordForUI[];
   error?: string;
 }> {
   try {
-    const user = await checkUser(); // Use Prisma User
+    const user = await checkUser();
     if (!user) return { error: 'User not found' };
+
+    // NOTE: use the same user identifier your other server code expects
     const userId = user.id;
 
-    const records: GymRecord[] = await db.gymRecord.findMany({
+    const records = await db.gymRecord.findMany({
       where: { userId },
       orderBy: { date: 'asc' },
     });
 
-    const formattedRecords = records.map((record) => ({
-      date: record.date.toISOString().split("T")[0],
-      weight: record.weight,
-      workoutType: record.workoutType,
+    const formattedRecords: GymRecordForUI[] = records.map((r) => ({
+      id: r.id,
+      userId: r.userId,
+      workoutType: r.workoutType,
+      weight: r.weight,
+      date: r.date.toISOString().split('T')[0], // keep YYYY-MM-DD for UI
+      createdAt: r.createdAt.toISOString(),
     }));
 
     return { records: formattedRecords };

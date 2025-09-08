@@ -23,7 +23,7 @@ const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({ records }) => {
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg w-full max-w-sm mx-auto">
       <h3 className="text-lg font-bold text-center mb-4 bg-gradient-to-r from-[#3F8A00] via-[#89C60E] to-[#DFF79A] bg-clip-text text-transparent">
-        {now.toLocaleString("default", { month: "long" })} Highlights
+        {now.toLocaleString("default", { month: "long" })} {year} 
       </h3>
 
       {/* Weekday headers */}

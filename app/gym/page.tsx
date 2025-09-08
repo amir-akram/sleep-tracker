@@ -4,6 +4,7 @@ import AddNewExercise from "../components/AddNewExcercise";
 import GymRecordChart from "../components/GymRecordChart";
 import AttendanceCalendar from "../components/AttendanceCalendar";
 import Highlights from "../components/Highlights";
+import GymRecordHistory from "../components/GymRecordHistory"; // ⬅️ Import
 import getGymRecords from "../actions/getGymRecords";
 
 const GymPage = async () => {
@@ -62,14 +63,28 @@ const GymPage = async () => {
         {/* Right Column (Charts/Stats) */}
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Pass fetched records as props */}
-            <AttendanceCalendar records={records ?? []} />
-            <Highlights records={records ?? []} />
+            <AttendanceCalendar
+              records={records?.map((r) => ({ date: r.date })) ?? []}
+            />
+            <Highlights
+              records={
+                records?.map((r) => ({ date: r.date, weight: r.weight })) ?? []
+              }
+            />
           </div>
 
-          <GymRecordChart records={records ?? []} />
+          <GymRecordChart
+            records={
+              records?.map((r) => ({
+                date: r.date,
+                weight: r.weight,
+                workoutType: r.workoutType,
+              })) ?? []
+            }
+          />
         </div>
       </div>
+      <GymRecordHistory />
     </main>
   );
 };
