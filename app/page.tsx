@@ -62,19 +62,20 @@ const HomePage = async () => {
           </div>
 
           {/* 🔥 Streaks & Stats Section */}
-         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-    <h3 className="text-lg font-semibold mb-2">Your Streak</h3>
-    <div className="flex items-center justify-between text-sm">
-      <p className="text-gray-700 dark:text-gray-300">
-        <span className="font-semibold">Current Streak:</span>{" "}
-        {streak.currentStreak} days 🔥
-      </p>
-      <p className="text-gray-700 dark:text-gray-300">
-        <span className="font-semibold">Longest Streak:</span>{" "}
-        {streak.longestStreak} days 🏆
-      </p>
-    </div>
+<div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+  <h3 className="text-lg font-semibold mb-2">Your Streak</h3>
+  
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
+    <p className="text-gray-700 dark:text-gray-300">
+      <span className="font-semibold">Current Streak:</span>{" "}
+      {streak.currentStreak} days 🔥
+    </p>
+    <p className="text-gray-700 dark:text-gray-300">
+      <span className="font-semibold">Longest Streak:</span>{" "}
+      {streak.longestStreak} days 🏆
+    </p>
   </div>
+</div>
 
 
           {/* Add Sleep Record */}
