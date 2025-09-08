@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import OpenAI from 'openai';
 import { checkAndLogAIRequest } from './checkLimit';
 import { checkUser } from './checkUser';
