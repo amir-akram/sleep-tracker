@@ -72,7 +72,7 @@ const Guest = () => {
         <div className='max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8'>
           <div className='bg-white dark:bg-gray-800 p-6 rounded-md shadow'>
             <p className='text-gray-700 dark:text-gray-300 mb-4'>
-              &quot;Tracker-360's AI insights feature has completely fixed my sleep cycle. I now wake
+              &quot;Tracker-360&apos;s AI insights feature has completely fixed my sleep cycle. I now wake
               up refreshed and ready for the day!&quot;
             </p>
             <p className='text-[#3F8A00] font-bold'>- Khadeeja K. </p>
@@ -87,7 +87,7 @@ const Guest = () => {
           <div className='bg-white dark:bg-gray-800 p-6 rounded-md shadow'>
             <p className='text-gray-700 dark:text-gray-300 mb-4'>
               &quot;I love how Tracker-360 combines everything — sleep, fitness,
-              and routines. The Streaks remind me of Snapchat !&quot;
+              and routines. The Streaks remind me of Snapchat! &quot;
             </p>
             <p className='text-[#3F8A00] font-bold'>- Saket Gokhle</p>
           </div>
