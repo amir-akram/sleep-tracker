@@ -6,18 +6,14 @@ import AttendanceCalendar from "../components/AttendanceCalendar";
 import Highlights from "../components/Highlights";
 import GymRecordHistory from "../components/GymRecordHistory"; // ⬅️ Import
 import getGymRecords from "../actions/getGymRecords";
+import Guest from "../components/Guest";
 
 const GymPage = async () => {
   const user = await currentUser();
-  if (!user) {
-    return (
-      <main className="flex items-center justify-center min-h-screen">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-          Please sign in to track your gym progress.
-        </h2>
-      </main>
-    );
+    if (!user) {
+    return <Guest />;
   }
+
 
   // ✅ Fetch gym records once
   const { records, error } = await getGymRecords();

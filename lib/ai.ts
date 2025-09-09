@@ -153,9 +153,31 @@ export async function generateSleepInsights(
   );
 }
 
-/**
- * ---- Shared Helper ----
- */
+
+// ---- Helper: Extract & Repair JSON Array ----
+function extractAndRepairJSONArray(text: string): string {
+  // Remove code fences
+  let cleaned = text.replace(/```json|```/gi, "").trim();
+
+  // Extract array only
+  const firstBracket = cleaned.indexOf("[");
+  const lastBracket = cleaned.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket !== -1) {
+    cleaned = cleaned.substring(firstBracket, lastBracket + 1);
+  }
+
+  // Fix trailing commas
+  cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+
+  // Fix unterminated strings
+  cleaned = cleaned.replace(/:\s*"([^"]*)$/, ':"$1"');
+
+  // Normalize curly quotes
+  cleaned = cleaned.replace(/“|”/g, '"').replace(/‘|’/g, "'");
+
+  return cleaned.trim();
+}
+
 async function generateInsightsHelper(
   compactData: string,
   prompt: string,
@@ -163,119 +185,89 @@ async function generateInsightsHelper(
 ): Promise<AIInsight[]> {
   try {
     const user = await checkUser();
-    if (!user) throw new Error('User not authenticated');
+    if (!user) throw new Error("User not authenticated");
 
     const { allowed, fallback, reason } = await checkAndLogAIRequest();
     if (!allowed) {
       if (fallback && recentRecords) {
-        console.warn('⚠️ Daily quota reached — using local insights instead.');
+        console.warn("⚠️ Daily quota reached — using local insights instead.");
         return localSleepInsights(recentRecords);
       }
       return [
         {
-          id: 'quota-reached',
-          type: 'warning',
-          title: 'Daily Quota Reached',
+          id: "quota-reached",
+          type: "warning",
+          title: "Daily Quota Reached",
           message:
             reason ||
-            '🚦 You’ve used your free AI insights for today. Please try again tomorrow.',
-          action: 'Upgrade for unlimited insights',
+            "🚦 You’ve used your free AI insights for today. Please try again tomorrow.",
+          action: "Upgrade for unlimited insights",
           confidence: 1.0,
         },
       ];
     }
 
-    // ---- Try primary model first ----
     let completion;
     try {
       completion = await openai.chat.completions.create({
-        model: 'deepseek/deepseek-chat-v3-0324:free',
+        model: "deepseek/deepseek-chat-v3-0324:free",
         messages: [
           {
-            role: 'system',
+            role: "system",
             content: `You are a health insights AI. 
-              Always return only a valid JSON array. 
-              Each object must have: type, title, message, action, confidence. 
-              No text outside the array.`,
+              Always return ONLY a valid JSON array.
+              Each object must have: type, title, message, confidence.
+              "action" is optional. No text outside the array.`,
           },
-          { role: 'user', content: prompt },
+          { role: "user", content: prompt },
         ],
         temperature: 0.5,
         max_tokens: 150,
       });
     } catch (err: any) {
-      if (err.status === 429) {
-        console.warn('⚠️ Provider 429 error, retrying with backup model...');
-        completion = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are a health insights AI. 
-                Always return only a valid JSON array. 
-                Each object must have: type, title, message, action, confidence. 
-                No text outside the array.`,
-            },
-            { role: 'user', content: prompt },
-          ],
-          temperature: 0.5,
-          max_tokens: 150,
-        });
-      } else {
-        throw err;
-      }
+      console.error("❌ AI request failed:", err);
+      if (recentRecords) return localSleepInsights(recentRecords);
+      throw err;
     }
 
     const response = completion.choices[0].message.content;
-    if (!response) throw new Error('No response from AI');
+    if (!response) throw new Error("No response from AI");
 
-    // ---- Cleanup response ----
-    let cleanedResponse = response.trim();
-    if (cleanedResponse.startsWith('```json')) {
-      cleanedResponse = cleanedResponse
-        .replace(/^```json\s*/, '')
-        .replace(/\s*```$/, '');
-    } else if (cleanedResponse.startsWith('```')) {
-      cleanedResponse = cleanedResponse
-        .replace(/^```\s*/, '')
-        .replace(/\s*```$/, '');
-    }
-
-    // ✅ Fix malformed JSON (remove trailing commas)
-    cleanedResponse = cleanedResponse.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+    // ✅ Clean + Repair response
+    const cleanedResponse = extractAndRepairJSONArray(response);
 
     let insights: RawInsight[];
     try {
       insights = JSON.parse(cleanedResponse);
     } catch (parseErr) {
-      console.error('⚠️ JSON parse failed, using local fallback:', parseErr);
+      console.error("⚠️ JSON parse failed, using local fallback:", parseErr);
       if (recentRecords) return localSleepInsights(recentRecords);
       throw parseErr;
     }
 
     return insights.map((insight: RawInsight, index: number) => ({
       id: `ai-${Date.now()}-${index}`,
-      type: (insight.type as AIInsight['type']) || 'info',
-      title: insight.title || 'AI Insight',
-      message: insight.message || 'Analysis complete',
-      action: insight.action,
+      type: (insight.type as AIInsight["type"]) || "info",
+      title: insight.title || "AI Insight",
+      message: insight.message || "Analysis complete",
+      action: insight.action || undefined, // ✅ optional
       confidence: insight.confidence || 0.8,
     }));
   } catch (error: any) {
-    console.error('❌ Error generating AI insights:', error);
+    console.error("❌ Error generating AI insights:", error);
     if (recentRecords) {
       return localSleepInsights(recentRecords);
     }
     return [
       {
-        id: 'fallback-1',
-        type: 'info',
-        title: 'AI Analysis Unavailable',
+        id: "fallback-1",
+        type: "info",
+        title: "AI Analysis Unavailable",
         message:
           error?.status === 429
-            ? 'Provider limit reached. Please wait or upgrade to continue using AI insights.'
-            : 'Unable to generate insights right now. Please try again later.',
-        action: 'Refresh insights',
+            ? "Provider limit reached. Please wait or upgrade to continue using AI insights."
+            : "Unable to generate insights right now. Please try again later.",
+        action: "Refresh insights",
         confidence: 0.5,
       },
     ];
