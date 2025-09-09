@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  
 }
 
 datasource db {
@@ -15,24 +8,46 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  clerkUserId String   @unique
-  email     String   @unique
-  name      String
-  imageUrl  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Records   Record[]
+  id          String     @id @default(uuid())
+  clerkUserId String     @unique
+  email       String     @unique
+  name        String
+  imageUrl    String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  Records     Record[]
+  GymRecords  GymRecord[]
+  AIRequests  AIRequest[]
 }
 
 model Record {
   id        String   @id @default(uuid())
-  text     String
-  amount   Float
-  date     DateTime @default(now())
-  userId   String
-  user     User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  text      String
+  amount    Float
+  date      DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
   createdAt DateTime @default(now())
   @@index([userId])
+}
 
+model AIRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+model GymRecord {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  workoutType String
+  weight      Float
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }

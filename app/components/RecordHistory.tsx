@@ -16,8 +16,9 @@ const RecordHistory = async () => {
 
   if (!records || records.length === 0) {
     return (
-      <div className="bg-gray-100 dark:bg-gray-900 flex items-center justify-center py-10 px-4">
-        <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 w-full max-w-2xl text-center">
+       <section className="max-w-7xl mx-auto mt-12 border-t border-gray-200 dark:border-gray-700 pt-6">
+      <div className="bg-gray-100 dark:bg-gray-900 flex items-center justify-center py-10 px-4 max-w-7xl ">
+        <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 w-full max-w-7xl text-center">
           <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#3F8A00] via-[#89C60E] to-[#DFF79A] bg-clip-text text-transparent">
             No Sleep Records Found
           </h3>
@@ -26,17 +27,17 @@ const RecordHistory = async () => {
           </p>
         </div>
       </div>
+      </section>
     );
   }
 
   return (
-    <div>
-        <div className="my-6 border-t border-gray-300 dark:border-gray-700" />
-    <div className="bg-gray-100 dark:bg-gray-900 py-10 px-4">
-      <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 mx-auto max-w-7xl">
-        <h3 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-[#3F8A00] via-[#89C60E] to-[#DFF79A] bg-clip-text text-transparent border-b border-gray-200 dark:border-gray-700 pb-6">
-          Sleep History
-        </h3>
+    <section className="max-w-7xl mx-auto mt-12 border-t border-gray-200 dark:border-gray-700 pt-6">
+      <div className="bg-gray-100 dark:bg-gray-900 py-10 max-w-7xl px-4">
+        <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-8 mx-auto max-w-7xl">
+          <h3 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-[#3F8A00] via-[#89C60E] to-[#DFF79A] bg-clip-text text-transparent border-b border-gray-200 dark:border-gray-700 pb-6">
+            Sleep History
+          </h3>
         <ul className="space-y-4">
           {records.map((record: Record) => (
             <RecordItem key={record.id} record={record} />
@@ -44,7 +45,7 @@ const RecordHistory = async () => {
         </ul>
       </div>
     </div>
-    </div>);
+    </section>);
 };
 
 export default RecordHistory;

@@ -1,43 +1,34 @@
 import { currentUser } from '@clerk/nextjs/server';
-
 import { db } from '@/lib/db';
 
 export const checkUser = async () => {
-  const user = await currentUser();
+  const clerkUser = await currentUser();
 
-  // Check for current logged in clerk user
-
-  if (!user) {
+  // 🚨 No Clerk user logged in
+  if (!clerkUser) {
     return null;
   }
 
-  // Check if the user is already in the database
-
-  const loggedInUser = await db.user.findUnique({
+  // ✅ Try to find user in DB by Clerk ID
+  let user = await db.user.findUnique({
     where: {
-      clerkUserId: user.id,
+      clerkUserId: clerkUser.id,
     },
   });
 
-  // If user is in database, return user
-
-  if (loggedInUser) {
-    return loggedInUser;
+  if (user) {
+    return user; // already exists
   }
 
-  // If not in database, create new user
-
-  const newUser = await db.user.create({
+  // ✅ Create new user if not found
+  user = await db.user.create({
     data: {
-      clerkUserId: user.id,
-
-      name: `${user.firstName} ${user.lastName}`,
-
-      imageUrl: user.imageUrl,
-
-      email: user.emailAddresses[0].emailAddress,
+      clerkUserId: clerkUser.id,
+      name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'New User',
+      imageUrl: clerkUser.imageUrl,
+      email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
     },
   });
 
-  return newUser;
+  return user;
 };

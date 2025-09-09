@@ -1,10 +1,16 @@
+"use client";
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { TbView360Number } from "react-icons/tb";
 import Link from 'next/link';
-import { checkUser } from '@/lib/checkUser';
+import { usePathname } from 'next/navigation';
 
-export default async function Navbar() {
-  const user = await checkUser();
+export default function Navbar() {
+  const pathname = usePathname();
+
+  const linkClass = (path: string) =>
+    pathname === path
+      ? "text-[#3F8A00] font-semibold px-2 py-1 rounded-md text-sm sm:px-3 sm:py-2 sm:text-base"
+      : "text-gray-700 dark:text-gray-300 hover:text-[#3F8A00] px-2 py-1 rounded-md text-sm sm:px-3 sm:py-2 sm:text-base";
 
   return (
     <nav className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
@@ -22,17 +28,15 @@ export default async function Navbar() {
 
           {/* Navigation */}
           <div className="flex items-center space-x-4">
-            <Link
-              href="/"
-              className="text-gray-700 dark:text-gray-300 hover:text-[#3F8A00] px-2 py-1 rounded-md text-sm sm:px-3 sm:py-2 sm:text-base font-medium hidden sm:block"
-            >
+            <Link href="/" className={linkClass("/")}>
               Home
             </Link>
 
-            <Link
-              href="/about"
-              className="text-gray-700 dark:text-gray-300 hover:text-[#3F8A00] px-2 py-1 rounded-md text-sm sm:px-3 sm:py-2 sm:text-base font-medium"
-            >
+            <Link href="/gym" className={linkClass("/gym")}>
+              Gym
+            </Link>
+
+            <Link href="/about" className={linkClass("/about")}>
               About
             </Link>
 

@@ -12,7 +12,7 @@ const Footer = () => {
               Tracker<TbView360Number className="inline-block mt-1 align-middle text-[#89C60E]" />
             </h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Track your sleep, improve your health.
+              Track your routine, improve your health.
             </p>
           </div>
 
